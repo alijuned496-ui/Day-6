@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>The Anshika Museum</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap');
+:root{--gold:#d8b875;--cream:#f1e5ce;--wine:#421d2a;--ink:#261820}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#160f13;color:var(--cream);font-family:'DM Sans',sans-serif;touch-action:none}#scene,#scene canvas{touch-action:none}
+#scene{position:fixed;inset:0}canvas{display:block}
+#top{position:fixed;top:14px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;width:90%;z-index:3;text-shadow:0 2px 12px #000}
+#top .eyebrow{font-size:9px;letter-spacing:3px;color:#e6c98c}#top h1{font:600 clamp(24px,5vw,39px) 'Cormorant Garamond',serif;margin:2px 0 0;letter-spacing:1px}
+#top p{font:10px 'DM Sans';letter-spacing:2px;margin:0;color:#e8d7bc}
+#hint{position:fixed;bottom:calc(112px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.5px;background:#20151bd9;border:1px solid #b9955c88;border-radius:20px;padding:9px 14px;white-space:nowrap;z-index:4;color:#f4e8d2;pointer-events:none}
+#controls{position:fixed;inset:auto 0 0;z-index:5;height:135px;pointer-events:none}
+#joy{position:absolute;left:22px;bottom:20px;width:104px;height:104px;border:1px solid #e2c58b99;border-radius:50%;background:#24151c88;pointer-events:auto;touch-action:none;box-shadow:0 0 25px #0008}
+#knob{position:absolute;width:42px;height:42px;left:30px;top:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f5e2b6,#a77a43);box-shadow:0 3px 12px #0009;border:1px solid #fff6}
+#look{display:none}
+#interact{position:fixed;right:22px;bottom:137px;z-index:6;border:1px solid #e2c58b;background:linear-gradient(145deg,#6a3942,#2b1821);color:#f8e8c9;border-radius:24px;padding:12px 18px;font:600 11px 'DM Sans';letter-spacing:1px;display:none;box-shadow:0 5px 18px #0008}
+#progress{position:fixed;top:16px;right:14px;z-index:4;border:1px solid #d5b47688;background:#1b1118bb;padding:8px 11px;border-radius:18px;font-size:10px;letter-spacing:.7px}
+#panel{position:fixed;inset:0;z-index:10;background:#100b0eeF;display:none;align-items:center;justify-content:center;padding:18px}
+#panel.open{display:flex}
+.paper{position:relative;width:min(680px,100%);max-height:min(82vh,760px);overflow:auto;background:linear-gradient(135deg,#f5ead5,#e6d2b2);color:#30202a;border:5px double #a98149;box-shadow:0 20px 70px #000b;padding:26px 23px 24px}
+.paper:before{content:"";position:absolute;inset:8px;border:1px solid #b99a68;pointer-events:none}
+.kicker{text-align:center;font-size:9px;letter-spacing:3px;color:#8a6540}.paper h2{text-align:center;font:600 34px 'Cormorant Garamond',serif;margin:6px 0 2px;color:#482631}.sub{text-align:center;font-size:10px;letter-spacing:1.5px;color:#86684c;margin-bottom:18px}
+.content{font:16px/1.65 'Cormorant Garamond',serif;white-space:pre-wrap;overflow-wrap:anywhere}
+.response{margin-top:20px;padding:15px 15px 13px;border-left:3px solid #9e7547;background:#ead9bd;font:15px/1.6 'Cormorant Garamond',serif}
+.response b{display:block;font:600 9px 'DM Sans';letter-spacing:2px;color:#805b39;margin-bottom:6px}
+.close{display:block;margin:20px auto 0;background:#4c2934;color:#f7e8cf;border:1px solid #bd9a62;border-radius:20px;padding:10px 24px;font:11px 'DM Sans';letter-spacing:1px}
+#start{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at center,#573642,#160f13 72%);display:flex;align-items:center;justify-content:center;padding:25px;text-align:center}
+.startbox{max-width:480px}
+#releaseCountdown{margin:24px auto 12px}
+.release-label{font-size:10px;letter-spacing:3px;color:#d9bd83;margin-bottom:13px}
+.release-clock{display:flex;justify-content:center;gap:10px}
+.release-unit{min-width:62px;padding:11px 7px 9px;border:1px solid #b9955c88;background:#1d1219a8;border-radius:10px}
+.release-unit strong{display:block;font:600 clamp(25px,7vw,35px)/1 'Cormorant Garamond',serif;color:#f1d69e}
+.release-unit span{display:block;margin-top:6px;font-size:8px;letter-spacing:1.5px;color:#d8c4a4}
+#releaseStatus{font-size:10px;letter-spacing:1px;color:#e4d0b1;margin-top:14px;min-height:14px}
+.crest{font-size:34px;color:#d9b878}.startbox h1{font:600 clamp(38px,8vw,58px)/.95 'Cormorant Garamond',serif;margin:14px 0;color:#f2dfbc}.startbox p{font:12px/1.8 'DM Sans';color:#e4d0b1;max-width:370px;margin:15px auto 24px}.startbox button{background:linear-gradient(145deg,#d9bd83,#9b7045);color:#2b1820;border:1px solid #f5e1b3;padding:14px 28px;border-radius:24px;font:600 11px 'DM Sans';letter-spacing:2px}
+#footer{position:fixed;bottom:5px;left:50%;transform:translateX(-50%);z-index:3;font-size:8px;letter-spacing:1px;color:#d5c3a1aa;pointer-events:none;white-space:nowrap}
+@media(max-width:600px){#joy{width:92px;height:92px;left:15px;bottom:18px}#knob{left:25px;top:25px;width:40px;height:40px}#hint{bottom:125px;font-size:10px}#interact{bottom:126px;right:14px}.paper{padding:22px 17px}.content{font-size:15px}}
+
+#finale{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at center,#38232d 0%,#100b0f 78%);opacity:0;transition:opacity 1.2s ease}
+#finale.show{display:flex;opacity:1}
+.finale-inner{width:min(680px,100%);max-height:88vh;overflow:auto;background:linear-gradient(135deg,#f7ecd8,#e8d5b7);color:#30202a;border:6px double #a98149;box-shadow:0 20px 80px #000c;padding:clamp(22px,5vw,38px);position:relative}
+.finale-inner:before{content:"";position:absolute;inset:9px;border:1px solid #b99a68;pointer-events:none}
+.finale-kicker{text-align:center;font-size:9px;letter-spacing:3px;color:#8a6540}
+.finale-inner h2{text-align:center;font:600 clamp(34px,7vw,46px) 'Cormorant Garamond',serif;color:#482631;margin:8px 0 5px}
+.finale-rule{height:1px;background:#b99a68;margin:17px 0}
+.finale-copy{font:clamp(17px,3.8vw,20px)/1.7 'Cormorant Garamond',serif;white-space:pre-line}
+.finale-sign{margin-top:20px;text-align:center;color:#8a6540;font:600 14px 'DM Sans';letter-spacing:1px}
+.finale-tease{margin-top:25px;padding:16px 12px;border:2px solid #a98149;background:linear-gradient(135deg,#f8e7bd,#e8c98d);color:#4a2630;text-align:center;font:700 clamp(13px,3vw,16px)/1.6 'DM Sans',sans-serif;letter-spacing:.6px;box-shadow:0 4px 14px #8a654044}
+#countdownScreen{position:fixed;inset:0;z-index:29;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:radial-gradient(ellipse at center,#543642,#100b0f 75%);color:#f1e5ce}
+#countdownScreen.show{display:flex}
+#countdownScreen .count-label{font-size:10px;letter-spacing:3px;color:#d8b875}
+#countdownNumber{font:600 clamp(100px,25vw,160px)/1 'Cormorant Garamond',serif;color:#e8c98b;text-shadow:0 0 35px #d8b87566}
+#countdownScreen .count-sub{font-size:10px;letter-spacing:2px;color:#e6d2b4}
+#completionNote{position:fixed;inset:0;z-index:28;display:none;align-items:center;justify-content:center;padding:25px;text-align:center;background:radial-gradient(ellipse at center,#49303a,#100b0f 78%);color:#f1e5ce}
+#completionNote.show{display:flex}
+#completionNote .completion-copy{max-width:520px;font:clamp(19px,4vw,25px)/1.6 'Cormorant Garamond',serif;color:#f1e5ce}
+#completionNote .completion-copy em{display:block;margin-top:20px;font:10px 'DM Sans';letter-spacing:2px;color:#d8b875}
+
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="top"><div class="eyebrow">A PRIVATE COLLECTION</div><h1>The Anshika Museum</h1><p>WORDS • PROMISES • LITTLE MEMORIES</p></div>
+<div id="progress">EXHIBITS VISITED <span id="count">0</span> / 7</div>
+<div id="hint">Swipe anywhere to turn • Use the joystick to walk</div>
+<button id="interact">OPEN EXHIBIT</button>
+<div id="controls"><div id="joy"><div id="knob"></div></div></div>
+<div id="footer">MOVE: JOYSTICK / WASD &nbsp; • &nbsp; LOOK: SWIPE ANYWHERE / ARROWS</div>
+<div id="panel"><div class="paper"><div class="kicker">THE ANSHIKA MUSEUM • PERMANENT ARCHIVE</div><h2 id="panelTitle"></h2><div class="sub" id="panelSub"></div><div class="content" id="panelContent"></div><div class="response" id="panelResponse"></div><button class="close" id="close">RETURN TO THE GALLERY</button></div></div>
+
+<div id="completionNote"><div class="completion-copy">Every memory has been seen. Every little piece of this collection has been explored.<em>THE FINAL ARCHIVE IS PREPARING</em></div></div>
+<div id="countdownScreen"><div class="count-label">THE FINAL ARCHIVE OPENS IN</div><div id="countdownNumber">7</div><div class="count-sub">A LITTLE MORE TO GO...</div></div>
+<div id="finale"><div class="finale-inner">
+  <div class="finale-kicker">THE ANSHIKA MUSEUM • FINAL ARCHIVE</div>
+  <h2>One Last Thing...</h2>
+  <div class="finale-rule"></div>
+  <div class="finale-copy">Anshika,
+
+You've now seen every little piece of this museum.
+
+Every word, every promise, every effort, every tiny thing that made me smile.
+
+But there's something I realised while putting all of this together.
+
+I didn't create this museum just to preserve the things you've said or the memories we've made.
+
+I created it because I never want u to think that the little things u do go unnoticed.
+
+Every single one of them matters to me.
+
+And if I could preserve one thing beyond all these seven exhibits, it would be the feeling of having u in my life.
+
+<strong>Thank u for being my favourite part of this story.</strong></div>
+  <div class="finale-sign">— Brownie</div>
+  <div class="finale-tease">(AREN'T U CURIOUS WHY THE COUNTDOWN WAS TILL SEVEN ONLY ?? OHH BABY WAIT TILL TOMORROW)</div>
+</div></div>
+
+<div id="start"><div class="startbox"><div class="crest">✦</div><div style="font-size:9px;letter-spacing:4px;color:#d9bd83">WELCOME TO</div><h1>The Anshika<br>Museum</h1><p>A little archive of words she wrote, promises she made, efforts she noticed, and memories worth keeping. Take your time. Every exhibit has a story.</p><div id="releaseCountdown">
+  <div class="release-label">THE MUSEUM OPENS IN</div>
+  <div class="release-clock">
+    <div class="release-unit"><strong id="releaseDays">00</strong><span>DAYS</span></div>
+    <div class="release-unit"><strong id="releaseHours">00</strong><span>HOURS</span></div>
+    <div class="release-unit"><strong id="releaseMinutes">00</strong><span>MINUTES</span></div>
+    <div class="release-unit"><strong id="releaseSeconds">00</strong><span>SECONDS</span></div>
+  </div>
+  <div id="releaseStatus">UNLOCKING AT MIDNIGHT • 6 NOVEMBER</div>
+</div>
+<button id="enter" type="button" style="display:none">ENTER THE MUSEUM</button><p id="loadStatus" role="status" aria-live="polite" style="font-size:10px;line-height:1.5;min-height:15px;color:#f0d9b3;margin:10px auto 0"></p><p style="font-size:9px;letter-spacing:1px">BEST EXPERIENCED WITH HEADPHONES • INTERNET REQUIRED FOR 3D ENGINE</p></div></div>
+<script>
+async function ensureThree(){
+ if(window.THREE)return;
+ const sources=[
+  'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js',
+  'https://unpkg.com/three@0.152.2/build/three.min.js'
+ ];
+ for(const src of sources){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src=src;script.async=true;
+    script.onload=()=>resolve();
+    script.onerror=()=>reject(new Error('Could not load the 3D engine'));
+    document.head.appendChild(script);
+   });
+   if(window.THREE)return;
+  }catch(err){}
+ }
+ throw new Error('The 3D engine could not be loaded. Please check your internet connection and try again.');
+}
+
+let museumStarted = false;
+const enterButton = document.getElementById('enter');
+const loadStatus = document.getElementById('loadStatus');
+
+async function bootMuseum() {
+  // Do not execute any THREE-dependent code until the library is ready.
+const isMobile = window.matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+const exhibits=[
+{title:"The Words You Once Wrote",sub:"EXHIBIT 01 • A LETTER PRESERVED",body:`My LOVELY Brownie 💗💋
+IK U r sleeping rn but 😭 I want to tell u this batana hai bus mujhe padh nhi pa rhi mein 🙏🏻
+Isliye bata kar Jane ke baad hi padh paungi 🙏🏻😭
+
+Junaid....I love you so muchhhh 💗
+I dont know whether we are getting a same lame clg or not but remember i love you so much baby 💗
+Ikikik loving is not enough if I won't get a same clg then it's just wo samjh ja
+
+Lekin i love you fir bhi 😭💗
+Soo veryyyyyyyyyyyy muchhhhhhhhhh words will never be enough to explain how much you mean to me how mychhh i love u but I want to try..try what getting a same clg not try will give my a hundred and forty three percent because you deserve to know exactly how I love u and i will prove my love to u by getting a same damn clg
+
+Uk what every day i find new reasons to love you mtlbb kabhi it's ur voice kabhi the way u to talk u said haq hai mera 😭
+Arey pagal hai kya han ik hai and every little thing about you makes me wo fold wheather it's ur voice, eyes kya hai 😭
+Why are u so wo pyara mera ..... Mera pyara junaid 💗
+
+I just love u i love junaid I love ur smile your voice aur way of talking and especially ur brownie beautiful eyes that gave u a nickname my Brownie waooo Whenever I think about you ur eyes came 😭🙏🏻hekdhdojdbskskwbsbdjdb like uk I feel so wo ... If u said anshika get lost i would like to get lost in ur in ur in ur eyes
+
+Uk what baby brownie u r one of the bestest things which had/has jo bhi hai ever happened to me I cherish every moment we spend togetherrr our every memory is precious to me walks talk I can talk to u about anything and everything the random conversations thoughts my baby became a yapper for me 😭💗
+
+You have become such an important part of my life schedule daily life time table what am I even saying nhi bhejungi yeh paragraph kisi din padhaungi fs 💗
+
+Aur teri essi ki tessi loosing interest my foot baby......I want u to know that I am not losing interest in you nevahhh evahh not even a little bit of something is happening my feelings keep getting stronger and stronger 😭
+
+One last thing junaid
+If there is anything bothering you if you ever overthink something about me us if you ever feel unsure about my feelings u think that i am cheating or kuch bhi yar please ask me please talk to me about that or pls for god sake share ur feelings mein waise nhi react karungi uss din jaise just fucking don't sit alone with thoughts that make you create stories in your head when you can simply come to me and ask directly anshika this this that aab yeh mat bolna manipulative hu
+
+Khud hi kheta hai communication is the key fir khud hi nhi karta communicate
+
+Again i love you.....nd no matter what happens I will always love you I hope you never forget that okay ok 😠
+
+Same clg ki toh hdkehdosbd
+
+Bie bie nighty I mean let me stady yar love you 💗😭
+
+Bheju ki nhi still in disbelief bhej du ya subah padhau idk 😭
+But ily fs 💗`,response:`I don't think you realise how much this paragraph means to me.
+
+I still love reading it. Every little interruption, every random word, every time you tried to explain something that you couldn't quite put into words.
+
+You called me your Brownie, talked about my eyes, promised to give your hundred and forty-three percent for the same college, and somehow turned one paragraph into something I'll always want to keep.
+
+Thank you for writing this. Thank you for making me feel loved. I didn't want these words to become just another old chat buried somewhere. I wanted to give them a place where they could stay.
+
+This is one of my favourite things I've ever received from you. 💗`},
+{title:"The Same College Promise",sub:"EXHIBIT 02 • JULY 17",body:`[11:02 PM]
+"U wanna know I am serious or not about the same clg junaid i am serious
+I am much more desperate for an nit same nit
+As u u wanna know why because I have a few people whom I want to prove wrong"
+
+[11:04 PM]
+"U fear what if it's not a same clg
+If it's not a same clg then it will be a same city things will go as planned"
+
+[11:09 PM]
+"And i will stand by u untill the very end i promise that's my promise mark it print it"`,response:`Thank you for putting so much hope into something we wanted together. I remember how seriously you took that dream, and how much you wanted to make it happen. I never want you to feel that you have to prove your love through a college result. Your effort mattered to me, and so did the person behind it.`},
+{title:"The Things You Tried For",sub:"EXHIBIT 03 • A DETERMINATION PRESERVED",body:`"A girl who barely passes the subject pcm is working her ass off just to get a same clg with u
+
+I use to be so cheerful"`,response:`I noticed how hard you were trying and how much this dream meant to you. But I hope you never feel you have to lose your cheerful self while chasing something important. You deserve to feel proud of your efforts, whatever the outcome.`},
+{title:"My Unofficial PCM Teacher",sub:"EXHIBIT 04 • SEPTEMBER 5 • TEACHER'S DAY",body:`Happy Teacher’s Dayyy!!! 💗😭
+
+Ik you’re technically not my teacher nd you’re literally just a student like me but honestly you deserve to be wished today because of how much you’ve helped me especially with Physics, Chemistry and Maths while we are preparing for JEE together to get a same clg u may say I use u 😭
+But I don't mind it u just teach me well or maybe just because u teach me i pay full attention and understand everything well idk idk idk whatever the reason is
+
+There have been so many times when I’ve been completely stuck on something staring at a question for ages and understanding absolutely nothing and then you somehow manage to explain it in a way that actually makes sense to me 😭
+
+The best part is that you never make me feel stupid for not understanding something u explain it again sometimes in the simplest possible way, until I finally get that
+
+OH WAIT I UNDERSTAND NOW
+
+Wala moment I genuinely don’t know how you have the patience to sit and teach me when you have your own studies and your own things to worry about but you still do it and I appreciate that more than I probably say
+
+You’re not just helping me solve questions you’re making subjects that sometimes feel impossible a little less scary for me Especially during this JEE preparation u made me a time table istg i will follow it strictly
+
+When everything feels so overwhelming and there are moments when I feel like Ik absolutely nothing having someone who can explain things to me without making me feel pressured is honestly such a blessing......🧘🏻‍♀️
+
+Prachi once said during teaching me junaid tolerates u just because he loves u she said it playfully like she was mad that I wasn't getting that concept and then she mentioned us anyways
+
+I’m genuinely grateful that I have you who is willing to put in the effort to help me learn really you understand exactly what it feels like to struggle with a chapter get confused over a concept or You somehow make studying feel less frustrating and sometimes even fun lovey dovey yawr which is honestly a huge achievement considering the amount of suffering Physics and Maths have caused me...🧘🏻‍♀️glad I have u I may complain about the subjects complain about the questions complain about JEE and probably complain while you’re teaching me too but deep down I really do appreciate every single time you’ve helped me ur every explanation, every doubt you’ve cleared, every question you’ve patiently solved with me and every time you’ve told me to try again instead of giving up has meant a lot.......🫂
+
+I hope you know that your efforts don’t go unnoticed bbg maybe you don’t realise how much of a difference you make when you help me but I genuinely feel lucky to have someone like you around who can teach me guide me
+
+So on this Teacher’s Day I just want to say a huge THANK YOU for being the kind of teacher I never expected to have but am genuinely grateful for.....😭💗
+Thank you for teaching me for being patient with me for clearing my endless doubts nd most importantly for making me believe that maybe I’m not completely hopeless at PCM after all.... I hope one day when we look back at our JEE preparation we remember not just the stressful chapters and endless questions but also the moments we spent together while studying
+Happy Teacher’s Day to my unofficial Physics-Chemistry-Maths teacher
+You’re genuinely one of the people I’ll always be grateful for in this journey
+
+LYsoooomuch 🌸🌷
+~ your fav student haina !!`,response:`You thanked me for teaching you, but you probably don't realise how special it was to be someone you trusted with your doubts, struggles and little OH WAIT I UNDERSTAND NOW moments. Thank you for noticing the patience and effort behind every explanation. I'll remember this message as more than a Teacher's Day wish.`},
+{title:"The Little Things",sub:"EXHIBIT 05 • SEPTEMBER 15",body:`"Nothing is wrong baby i love everything u do for me 👄
+
+Buddhu kya socha tha kuch bada sa likh kar criticise karungi 😭
+
+No no no
+No
+Aab mein samjh chuki hu mujhe kya krta hai
+I just have to appreciate every small effort u make
+Like awww he texted me he literally thought typed and sent it to me with his big big hands and big big fingers
+Awwwwww so cute 😭
+
+He held phone in his hand just for me oh he is breathing just for me 👄
+
+Awwwwwwwwwwww he exists as my boyfriend 🫂😭🫂😭🫂😭
+
+So cute 👅😻🫦"`,response:`This is so completely you. The way you turned the tiniest things into something worth appreciating still makes me smile. Thank you for noticing the little efforts. I hope you know that your way of appreciating them became one of the little things I wanted to preserve too.`},
+{title:"Only You",sub:"EXHIBIT 06 • SEPTEMBER 19",body:`"I only love you and have my eyes for u only u and only u
+
+I only kissed u and I will be only loving u and u and u only
+
+U are my only one not better half but betterrr full u are"`,response:`I don't think you know how many times I've smiled remembering that last line. "Not better half but betterrr full" — that's one of those sentences that sounds so much like you that I wouldn't want it rewritten.`},
+{title:"A World to Explore",sub:"EXHIBIT 07 • SEPTEMBER 20",body:`"I want to roam every place in the world with u."`,response:`Let's keep that dream somewhere safe. There are still so many places, new sights, random conversations and experiences waiting to become memories. I hope life gives you the chance to see the world, with all the joy and freedom you deserve.`}
+];
+let scene,camera,renderer,clock,world=[],targets=[],visited=new Set(),active=-1;
+let yaw=0,pitch=0,vel=new THREE.Vector3(),move=new THREE.Vector2(),keys={},lookPointer=null,lastX=0,lastY=0;
+const container=document.getElementById('scene'),interact=document.getElementById('interact');
+function mat(color,rough=.8,metal=0){return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal})}
+function addBox(x,y,z,w,h,d,material,group=scene){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);group.add(o);return o}
+function addCylinder(x,y,z,r1,r2,h,material,group=scene){let o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,10),material);o.position.set(x,y,z);group.add(o);return o}
+function ornateFrame(x,y,z,rotY,index){
+ const gold=mat(0xb58b4e,.35,.65),dark=mat(0x4b2630),paper=mat(0xe7d5b4);
+ let g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=rotY;scene.add(g);
+ addBox(0,0,0,2.05,2.65,.18,dark,g);
+ addBox(0,0,.105,1.84,2.44,.035,gold,g);
+ addBox(0,0,.13,1.68,2.28,.025,paper,g);
+ // inner artwork
+ addBox(0,.15,.15,1.4,1.9,.018,mat([0x8a5a5b,0x7b654b,0x6f4850,0x9b7652,0x785e6a,0x76505b,0x96724c][index]),g);
+ // gilded rails
+ for(let xx of [-.97,.97])addBox(xx,0,.16,.07,2.55,.06,gold,g);
+ for(let yy of [-1.27,1.27])addBox(0,yy,.16,1.98,.07,.06,gold,g);
+ // small plaque
+ addBox(0,-1.48,.13,1.45,.24,.06,mat(0x5a3038),g);
+ let hit=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.9,.3),new THREE.MeshBasicMaterial({transparent:true,opacity:0}));hit.position.set(0,0,.12);g.add(hit);hit.userData.index=index;targets.push(hit);
+ return g;
+}
+function column(x,z){let stone=mat(0xc8b38f),gold=mat(0xb38b52,.4,.6);addCylinder(x,2.25,z,.28,.34,4.5,stone);addCylinder(x,4.55,z,.48,.48,.18,gold);addCylinder(x,.12,z,.5,.5,.24,gold);addCylinder(x,4.78,z,.34,.34,.28,stone)}
+function chandelier(x,z){let gold=mat(0xb18a4d,.35,.7);addCylinder(x,4.25,z,.08,.08,.55,gold);for(let i=0;i<4;i++){let a=i*Math.PI/2;let arm=addCylinder(x+Math.cos(a)*.65,3.95,z+Math.sin(a)*.65,.035,.035,.9,gold);arm.rotation.z=Math.cos(a)*.7;arm.rotation.x=Math.sin(a)*.7;let bulb=new THREE.Mesh(new THREE.SphereGeometry(.10,7,7),new THREE.MeshBasicMaterial({color:0xffd78d}));bulb.position.set(x+Math.cos(a)*.92,3.62,z+Math.sin(a)*.92);scene.add(bulb)}}
+function init(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x1a1116);scene.fog=new THREE.Fog(0x1a1116,18,55);
+ camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,100);camera.position.set(0,1.65,13);
+ renderer=new THREE.WebGLRenderer({antialias:!isMobile,powerPreference:'low-power',precision:isMobile?'mediump':'highp'});renderer.setPixelRatio(Math.min(devicePixelRatio,isMobile?1:1.25));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=false;container.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xe9d7bc,0x35202a,1.2));
+ let key=new THREE.DirectionalLight(0xffdfb0,1.35);key.position.set(-5,10,7);key.castShadow=false;scene.add(key);
+ const floor=mat(0x4a2631),wall=mat(0x3c202a),ceiling=mat(0x281820),trim=mat(0xb18b53,.4,.55),carpet=mat(0x713d48);
+ addBox(0,-.18,-8,15,.35,55,floor);addBox(0,6,-8,15,.3,55,ceiling);
+ addBox(-7.5,3,-8,.35,6,55,wall);addBox(7.5,3,-8,.35,6,55,wall);
+ addBox(0,.015,-8,3.4,.04,55,carpet);
+ // wall trim panels
+ for(let z=15;z>-34;z-=5){for(let side of [-1,1]){addBox(side*7.28,2.7,z,.06,5.1,3.8,trim);addBox(side*7.22,2.7,z,.08,4.85,3.55,wall);column(side*6.75,z-1.9);column(side*6.75,z+1.9)}chandelier(0,z-2.5)}
+ // entrance arch impression
+ addBox(0,5.5,17,15,1,1,trim);addBox(-6.8,3,17,.7,5,1,trim);addBox(6.8,3,17,.7,5,1,trim);
+ // exhibit displays alternating on walls down hall
+ exhibits.forEach((e,i)=>{let z=9-i*6.1;let side=i%2===0?-1:1;ornateFrame(side*7.22,2.7,z,side===-1?Math.PI/2:-Math.PI/2,i);let plaque=addBox(side*6.95,1.05,z,.9,.32,.08,trim);});
+ // side room suggestion arches
+ for(let z=7;z>-34;z-=12){for(let s of [-1,1]){addBox(s*6.95,3,z,1.05,5.4,.5,trim);addBox(s*6.95,3,z+.28,.8,5,.25,wall)}}
+ // flower planters
+ for(let z=12;z>-34;z-=12){for(let s of [-1,1]){addBox(s*5.8,.28,z,1,.55,1,mat(0x5a3038));for(let j=0;j<5;j++){let f=new THREE.Mesh(new THREE.SphereGeometry(.22,7,7),mat(j%2?0xb77b82:0xd3a9a0));f.position.set(s*5.8+(Math.random()-.5)*.6,.8,z+(Math.random()-.5)*.6);scene.add(f)}}}
+ let amb=new THREE.PointLight(0xd7a76a,.55,30);amb.position.set(0,4,0);scene.add(amb);
+ clock=new THREE.Clock();animate();
+}
+let lastFrameTime=0;function animate(now=0){requestAnimationFrame(animate);if(isMobile&&now-lastFrameTime<33)return;lastFrameTime=now;if(!scene)return;let dt=Math.min(clock.getDelta(),.04);
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ let wish=forward.clone().multiplyScalar(-move.y).add(right.clone().multiplyScalar(move.x));
+ if(keys.KeyW||keys.ArrowUp)wish.add(forward);if(keys.KeyS||keys.ArrowDown)wish.sub(forward);if(keys.KeyA||keys.ArrowLeft)wish.sub(right);if(keys.KeyD||keys.ArrowRight)wish.add(right);
+ if(wish.lengthSq()>0)wish.normalize().multiplyScalar(4.2);vel.lerp(wish,Math.min(1,dt*7));
+ camera.position.addScaledVector(vel,dt);camera.position.x=THREE.MathUtils.clamp(camera.position.x,-5.65,5.65);camera.position.z=THREE.MathUtils.clamp(camera.position.z,-34,15);camera.position.y=1.65;
+ camera.rotation.order='YXZ';camera.rotation.y=yaw;camera.rotation.x=pitch;
+ let nearest=-1,dist=999;exhibits.forEach((e,i)=>{let z=9-i*6.1,side=i%2===0?-1:1;let d=Math.hypot(camera.position.x-side*6.4,camera.position.z-z);if(d<dist){dist=d;nearest=i}});
+ if(dist<4.2){active=nearest;interact.style.display='block'}else{active=-1;interact.style.display='none'}
+ renderer.render(scene,camera);
+}
+function openExhibit(i){if(i<0)return;visited.add(i);document.getElementById('count').textContent=visited.size;document.getElementById('panelTitle').textContent=exhibits[i].title;document.getElementById('panelSub').textContent=exhibits[i].sub;document.getElementById('panelContent').textContent=exhibits[i].body;document.getElementById('panelResponse').innerHTML='<b>A NOTE FROM THE ARCHIVE</b>'+exhibits[i].response;document.getElementById('panel').classList.add('open')}
+interact.onclick=()=>openExhibit(active);
+let finaleTriggered=false;
+document.getElementById('close').onclick=()=>{
+  document.getElementById('panel').classList.remove('open');
+  if(visited.size===7&&!finaleTriggered){finaleTriggered=true;startFinalSequence();}
+};
+function startFinalSequence(){
+  const note=document.getElementById('completionNote');
+  const countdown=document.getElementById('countdownScreen');
+  const number=document.getElementById('countdownNumber');
+  note.classList.add('show');
+  setTimeout(()=>{
+    note.classList.remove('show');
+    countdown.classList.add('show');
+    let remaining=7;
+    number.textContent=remaining;
+    const timer=setInterval(()=>{
+      remaining--;
+      if(remaining>0){number.textContent=remaining;}
+      else{
+        clearInterval(timer);
+        countdown.classList.remove('show');
+        document.getElementById('finale').classList.add('show');
+      }
+    },1000);
+  },2600);
+}
+
+
+window.addEventListener('resize',()=>{if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+window.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE'&&active>=0)openExhibit(active)});window.addEventListener('keyup',e=>keys[e.code]=false);
+const joy=document.getElementById('joy'),knob=document.getElementById('knob');let joyId=null;
+joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joyMove(e)});
+joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joyMove(e)});
+function joyMove(e){let r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),max=31,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max}knob.style.transform=`translate(${dx}px,${dy}px)`;move.set(dx/max,-dy/max)}
+function joyEnd(e){if(e.pointerId!==joyId)return;joyId=null;move.set(0,0);knob.style.transform='translate(0,0)'}
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+// Screen-wide camera control: swipe anywhere except the movement joystick and UI.
+function rotateView(dx,dy){
+  if(!camera)return;
+  yaw-=dx*.009;
+  pitch=THREE.MathUtils.clamp(pitch-dy*.006,-.75,.75);
+}
+document.addEventListener('pointerdown',e=>{
+  if(!camera || document.getElementById('panel').classList.contains('open'))return;
+  if(e.target.closest('#joy, #interact, #panel, #start, button'))return;
+  lookPointer=e.pointerId;lastX=e.clientX;lastY=e.clientY;
+},{passive:true});
+document.addEventListener('pointermove',e=>{
+  if(e.pointerId!==lookPointer)return;
+  const dx=e.clientX-lastX,dy=e.clientY-lastY;
+  lastX=e.clientX;lastY=e.clientY;rotateView(dx,dy);
+},{passive:true});
+function lookEnd(e){if(e.pointerId===lookPointer)lookPointer=null}
+document.addEventListener('pointerup',lookEnd,{passive:true});
+document.addEventListener('pointercancel',lookEnd,{passive:true});
+
+  init();
+  museumStarted = true;
+}
+
+const releaseTarget = new Date('2026-11-06T00:00:00+05:30').getTime();
+const releaseCountdown = document.getElementById('releaseCountdown');
+const releaseStatus = document.getElementById('releaseStatus');
+let releaseTimer = null;
+let launchInProgress = false;
+
+async function launchMuseum() {
+  if (launchInProgress || museumStarted) return;
+  launchInProgress = true;
+  enterButton.disabled = true;
+  enterButton.textContent = 'PREPARING THE MUSEUM...';
+  enterButton.style.display = 'inline-block';
+  releaseStatus.textContent = 'THE DOORS ARE OPENING...';
+  loadStatus.textContent = 'Loading the gallery. This may take a few seconds.';
+  try {
+    await ensureThree();
+    await bootMuseum();
+    document.getElementById('start').style.display = 'none';
+    loadStatus.textContent = '';
+    if (releaseTimer) clearInterval(releaseTimer);
+  } catch (err) {
+    console.error('Museum startup failed:', err);
+    releaseStatus.textContent = 'THE MUSEUM IS READY — TAP TO ENTER';
+    loadStatus.textContent = err && err.message
+      ? err.message
+      : 'The museum could not start. Please check your internet and try again.';
+    enterButton.disabled = false;
+    enterButton.textContent = 'ENTER THE MUSEUM';
+    enterButton.style.display = 'inline-block';
+    launchInProgress = false;
+  }
+}
+
+enterButton.addEventListener('click', launchMuseum);
+
+function updateReleaseCountdown() {
+  const remaining = releaseTarget - Date.now();
+  if (remaining <= 0) {
+    ['releaseDays','releaseHours','releaseMinutes','releaseSeconds'].forEach(id => {
+      document.getElementById(id).textContent = '00';
+    });
+    releaseStatus.textContent = 'MIDNIGHT HAS ARRIVED • WELCOME IN';
+    if (releaseTimer) clearInterval(releaseTimer);
+    launchMuseum();
+    return;
+  }
+  const days = Math.floor(remaining / 86400000);
+  const hours = Math.floor((remaining % 86400000) / 3600000);
+  const minutes = Math.floor((remaining % 3600000) / 60000);
+  const seconds = Math.floor((remaining % 60000) / 1000);
+  document.getElementById('releaseDays').textContent = String(days).padStart(2,'0');
+  document.getElementById('releaseHours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('releaseMinutes').textContent = String(minutes).padStart(2,'0');
+  document.getElementById('releaseSeconds').textContent = String(seconds).padStart(2,'0');
+}
+
+updateReleaseCountdown();
+if (Date.now() < releaseTarget) {
+  releaseTimer = setInterval(updateReleaseCountdown, 250);
+} else {
+  // If she visits after the release time, open the museum immediately.
+  launchMuseum();
+}
+
+</script>
+</body></html>
